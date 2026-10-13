@@ -4,6 +4,8 @@ A modern redesign concept for [Fitness Plus](https://fitnessplus.club/), Gulshan
 
 Static site (HTML, CSS, vanilla JS), no build step. Open `index.html` or deploy on Vercel.
 
+**Live preview:** https://fitnessplus-redesign.vercel.app
+
 - Dark, bold brand look in Fitness Plus black and red
 - Fully responsive, with a mobile menu
 - Scroll animations and stat count-ups
