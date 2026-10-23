@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useScroll, useSpring, useTransform } from "motion/react";
-import { useRef } from "react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
 import { SERVICES } from "./data";
 import { Kicker, Reveal, SplitHeading } from "./ui";
 
@@ -35,9 +35,26 @@ function Card({ s, i }: { s: (typeof SERVICES)[number]; i: number }) {
 
 export default function Services() {
   const ref = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 25 });
-  const x = useTransform(smooth, [0, 1], ["0%", "-62%"]);
+  // Travel in px: the track is stretched to the viewport, so % would be relative to that, not its content.
+  const distance = useMotionValue(0);
+  const x = useTransform([smooth, distance], ([p, d]: number[]) => -p * d);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const measure = () => {
+      // Overflow past the visible width, plus a right gutter matching the left padding.
+      const gutter = parseFloat(getComputedStyle(track).paddingLeft);
+      distance.set(Math.max(0, track.scrollWidth - track.clientWidth + gutter));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(track);
+    return () => ro.disconnect();
+  }, [distance]);
 
   return (
     <section id="services" className="bg-ink-2">
@@ -53,7 +70,7 @@ export default function Services() {
             </div>
             <p className="max-w-xs text-zinc-400">Keep scrolling. Every program is built and supervised by certified trainers and physios.</p>
           </div>
-          <motion.div style={{ x }} className="flex gap-6 pl-[max(2rem,calc((100vw-80rem)/2+2rem))]">
+          <motion.div ref={trackRef} style={{ x }} className="flex gap-6 pl-[max(2rem,calc((100vw-80rem)/2+2rem))]">
             {SERVICES.map((s, i) => (
               <Card key={s.title} s={s} i={i} />
             ))}
